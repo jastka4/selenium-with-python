@@ -1,5 +1,5 @@
-import unittest
-import os
+import unittest, os, time
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -15,9 +15,13 @@ class KytaryOrgSearch(unittest.TestCase):
         self.driver = webdriver.Firefox(executable_path=current_path + '/geckodriver')
 
     def test_add_to_cart(self):
+        contents_file = "data.html"
         driver = self.driver
         driver.get("https://kytary.pl/")
         self.assertIn("Instrumenty muzyczne", driver.title)
+        
+
+        start_time = int(round(time.time() * 1000))
 
         search = driver.find_element_by_id("search")
 
@@ -47,7 +51,21 @@ class KytaryOrgSearch(unittest.TestCase):
         except NoSuchElementException:
             self.fail( "Couldn't add to cart" )
 
-        assert "No results found." not in driver.page_source
+        time_loc = (int(round(time.time() * 1000)) - start_time)
+        end_time = str(time_loc)
+
+        file = open(contents_file, 'r')
+        old_contents = file.read()
+        file.close()
+        soup = BeautifulSoup(old_contents)
+
+        contents = "<tr><td>test_add_to_cart</td><td>" + end_time + "</td></tr>"
+
+        old_contents = old_contents.replace(" class='time'", "")
+        old_contents = old_contents.replace("</table>", contents + "\n</table>")
+        file = open(contents_file, 'w')
+        file.write(old_contents)
+        file.close()
 
 
     def tearDown(self):
